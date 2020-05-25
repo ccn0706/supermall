@@ -3,14 +3,13 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <home-swiper :banners="banners" />
-    <home-recommend :recommends="recommends" />
-    <home-feature />
-    <tab-control :titles="titles" class="tab-control" @tabClick="tabclick" />
-    <!-- <good-list :goods="goods[currentType].list"/> -->
-    <!-- 换成计算属性写 -->
-    <good-list :goods="showGoods"/>
-    <div id="h"></div>
+    <scroll class="content">
+      <home-swiper :banners="banners" />
+      <home-recommend :recommends="recommends" />
+      <home-feature />
+      <tab-control :titles="titles" class="tab-control" @tabClick="tabclick" />
+      <good-list :goods="showGoods" />
+    </scroll>
   </div>
 </template>
 <script>
@@ -22,6 +21,8 @@ import HomeFeature from "./childComps/HomeFeature";
 import NavBar from "components/common/navbar/NavBar";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodList from "components/content/goods/GoodList";
+import Scroll from "components/common/scroll/Scroll";
+
 // 数据获取
 // import { getHomeMultidata } from "network/home";
 // import { getHomeGoods } from "network/home";
@@ -35,7 +36,8 @@ export default {
     HomeRecommend,
     HomeFeature,
     TabControl,
-    GoodList
+    GoodList,
+    Scroll
   },
   data() {
     return {
@@ -47,37 +49,37 @@ export default {
         new: { page: 0, list: [] },
         sell: { page: 0, list: [] }
       },
-      currentType:'pop'
+      currentType: "pop"
     };
   },
   // 组件创建完发送请求
   created() {
     // 请求多个数据
     this.getMultidata();
-    this.getgoods('pop');
-    this.getgoods('new');
-    this.getgoods('sell');
+    this.getgoods("pop");
+    this.getgoods("new");
+    this.getgoods("sell");
   },
   computed: {
-    showGoods(){
+    showGoods() {
       return this.goods[this.currentType].list;
     }
   },
   methods: {
     // 事件监听方法
-    tabclick(index){
-      console.log(index)
+    tabclick(index) {
+      console.log(index);
       switch (index) {
-          case 0:
-            this.currentType = 'pop'
-            break
-          case 1:
-            this.currentType = 'new'
-            break
-          case 2:
-            this.currentType = 'sell'
-            break
-        }
+        case 0:
+          this.currentType = "pop";
+          break;
+        case 1:
+          this.currentType = "new";
+          break;
+        case 2:
+          this.currentType = "sell";
+          break;
+      }
     },
     // 网络请求相关方法
     getMultidata() {
@@ -90,11 +92,11 @@ export default {
     },
     getgoods(type) {
       // 获取类型的页数并加1
-      const page=this.goods[type].page+1;
+      const page = this.goods[type].page + 1;
       getHomeGoods(type, page).then(res => {
         // es6的循环添加
         this.goods[type].list.push(...res.data.list);
-        this.goods[type].page+=1;
+        this.goods[type].page += 1;
       });
     }
   }
@@ -104,6 +106,8 @@ export default {
 <style scoped>
 #home {
   padding-top: 44px;
+  height: 100vh;
+  position: relative;
 }
 .home-nav {
   background: var(--color-tint);
@@ -114,14 +118,23 @@ export default {
   top: 0;
   z-index: 8;
 }
-#h {
-  height: 1000px;
-  width: 100%;
-}
 .tab-control {
   /* 当top高于44px为sticky,低于44px为fixed。IE兼容性 */
   position: sticky;
-  top: 43px;
-  z-index: 9;
+  top: 44px;
+  z-index: 9999;
 }
+.content{
+  overflow: hidden;
+  position: absolute;
+  top: 44px;
+  bottom: 49px;
+  left: 0;
+  right: 0;
+}
+/* .content{
+  height: calc(100% - 93px);
+  overflow: hidden;
+  margin-top: 44px;
+} */
 </style>
