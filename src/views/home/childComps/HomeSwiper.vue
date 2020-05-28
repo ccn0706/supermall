@@ -1,13 +1,11 @@
 <template>
-  <div>
     <swiper>
-      <swiper-item v-for='(item,index) in banners' :key='index'>
+      <swiper-item v-for="(item,index) in banners" :key="index">
         <a :href="item.link">
-          <img :src="item.image" alt />
+          <img :src="item.image" alt @load="swiperImgLoad" />
         </a>
       </swiper-item>
     </swiper>
-  </div>
 </template>
 
 <script>
@@ -29,6 +27,20 @@ export default {
   components: {
     Swiper,
     SwiperItem
+  },
+  data() {
+    return {
+      isLoad: false
+    };
+  },
+  methods: {
+    swiperImgLoad() {
+      // 只需发送一次
+      if (!this.isLoad) {
+         this.$emit("swiperImgLoad");
+         this.isLoad=true;
+      }
+    }
   }
 };
 </script>

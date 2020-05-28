@@ -3,17 +3,25 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
+    <tab-control
+      :titles="titles"
+      class="tab-controls"
+      @tabClick="tabclick"
+      ref="tabControl1"
+      v-show="isTapFixed"
+    />
     <scroll
       class="content"
       ref="scroll"
       :probe-type="3"
       :pull-up-load="true"
       @scroll="contentScroll"
+      @pullingUp="loadMore"
     >
-      <home-swiper :banners="banners" />
+      <home-swiper :banners="banners" @swiperImgLoad="swiperImgLoad" />
       <home-recommend :recommends="recommends" />
       <home-feature />
-      <tab-control :titles="titles" class="tab-control" @tabClick="tabclick" />
+      <tab-control :titles="titles" class="tab-control" @tabClick="tabclick" ref="tabControl2" />
       <good-list :goods="showGoods" />
     </scroll>
     <back-top @click.native="backclick" v-show="isShowBackTop" />
@@ -36,6 +44,8 @@ import BackTop from "components/common/backtop/BackTop";
 // import { getHomeGoods } from "network/home";
 // 从一个地方导入过多可以简写
 import { getHomeMultidata, getHomeGoods } from "network/home";
+// 防抖封装
+import { debounce } from "common/utils";
 export default {
   name: "Home",
   components: {
@@ -59,7 +69,11 @@ export default {
         sell: { page: 0, list: [] }
       },
       currentType: "pop",
-      isShowBackTop: false
+      isShowBackTop: false,
+      offsetTop: 0,
+      isTapFixed: false,
+      // 记录离开时scroll的y值
+      saveY:0
     };
   },
   // 组件创建完发送请求
@@ -77,11 +91,16 @@ export default {
     //   this.$refs.scroll.refresh();
     // });
 
-    //防抖动写法
-    const refresh = this.debounce(this.$refs.scroll.refresh, 200);
+    //使用防抖动写法
+    const refresh = debounce(this.$refs.scroll.refresh, 200);
     this.$bus.$on("itemImgLoad", () => {
       refresh();
     });
+    // 获取tabControl的offsetTop，
+    // 注意：组件是拿不到offsetTop的，需要拿到组件内元素的offsetTop。所有的组件都有一个属性$el:用于获取组件中的元素。
+    // this.offsetTop=this.$refs.tabControl.$el.offsetTop;
+    // 这时打印出来的只有58，明显不正确。原因是在mounted，有的图片并未加载完
+    // console.log(this.offsetTop)
   },
   computed: {
     showGoods() {
@@ -90,23 +109,8 @@ export default {
   },
   methods: {
     // 事件监听相关的方法
-    // 防抖函数
-    debounce(func, delay) {
-      //这里的timer是闭包，但是有被使用，不会被销毁
-      let timer = null;
-      // ...args是指括号内可以传多个值
-      return function(...args) {
-        // 判断的作用当过于频繁时，把timer定时器清0，这样就不会一直调用
-        if (timer) {
-          clearTimeout(timer);
-        }
-        timer = setTimeout(() => {
-          func.apply(this, args);
-        }, delay);
-      };
-    },
     tabclick(index) {
-      console.log(index);
+      // console.log(index);
       switch (index) {
         case 0:
           this.currentType = "pop";
@@ -118,25 +122,36 @@ export default {
           this.currentType = "sell";
           break;
       }
+      // 这是为了能够让两个tab-contrl能够选中的统一。
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
     },
+    // 监听滚动
     contentScroll(position) {
-      //当滚动条大于1000时显示
+      //1.判断backTop是否显示。当滚动条大于1000时显示
       this.isShowBackTop = -position.y > 1000;
+      // 2.决定tabControl是否吸顶
+      this.isTapFixed = -position.y > this.offsetTop;
     },
     // 上拉加载更多
-    // loadMore(){
-    //   this.getgoods(this.currentType);
-    // },
+    loadMore() {
+      this.getgoods(this.currentType);
+    },
     backclick() {
       // console.log(this.$refs.scroll.message)
       // 调用scroll组件中的scrollTo方法
       this.$refs.scroll.scrollTo(0, 0);
     },
+    // 轮播滚动加载完成监听
+    swiperImgLoad() {
+      this.offsetTop = this.$refs.tabControl2.$el.offsetTop;
+      // console.log(this.offsetTop);
+    },
     // 网络请求相关方法
     getMultidata() {
       // getHomeMultidata()这是一个函数
       getHomeMultidata().then(res => {
-        console.log(res);
+        // console.log(res);
         this.banners = res.data.banner.list;
         this.recommends = res.data.recommend.list;
       });
@@ -149,33 +164,61 @@ export default {
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
         // finishPullUp()标识一次上拉加载动作结束。
-        // this.$refs.scroll.finishPullUp();
+        this.$refs.scroll.finishPullUp();
       });
     }
-  }
+  },
+  // 组件销毁
+  destroyed() {
+    console.log("destroyed");
+  },
+  // 在better-scroll版本2没有这个问题，不需要记录。
+  // // 组件进来
+  // activated() {
+  //   // console.log("组件进来");
+  //   this.$refs.scroll.scrollTo(0,this.saveY,0);
+  //   // 最好在重新刷一次
+  //   this.$refs.scroll.refresh();
+  // },
+  // // 组件离开
+  // deactivated() {
+  //   // console.log("组件离开");
+  //   this.saveY=this.$refs.scroll.getScrollY();
+  // }
 };
 </script>
 
 <style scoped>
 #home {
-  padding-top: 44px;
+  /* padding-top: 44px; */
   height: 100vh;
   position: relative;
 }
 .home-nav {
   background: var(--color-tint);
   color: white;
-  position: fixed;
+  /* 在使用浏览器原生滚动时，为了让导航不跟谁一起滚动使用 */
+  /* position: fixed;
   left: 0;
   right: 0;
   top: 0;
-  z-index: 8;
+  z-index: 8; */
 }
 .tab-control {
   /* 当top高于44px为sticky,低于44px为fixed。IE兼容性 */
-  position: sticky;
+  /* position: sticky;
   top: 44px;
-  z-index: 9999;
+  z-index: 9999; */
+}
+.tab-controls {
+  position: relative;
+  z-index: 9;
+}
+.fiexed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 44px;
 }
 .content {
   overflow: hidden;

@@ -57,7 +57,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .wrapper {
   height: 100px;
   width: 100%;
