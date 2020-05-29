@@ -21,3 +21,21 @@ export class Goods{
         this.services=services;
     }
 }
+export class Shop{
+    constructor(shopInfo) {
+        this.logo=shopInfo.shopLogo;
+        this.name=shopInfo.name;
+        this.fans=shopInfo.cFans;
+        this.sells=shopInfo.cSells;
+        this.score=shopInfo.score;
+        this.goodsCount=shopInfo.cGoods;
+    }
+}
+export class GoodsParam{
+    constructor(info,rule){
+        // 注：images可能没有值
+        this.image=info.image?info.image[0]:'';
+        this.infos=info.set;
+        this.sizes=rule.tables;
+    }
+}
