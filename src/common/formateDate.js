@@ -1,7 +1,7 @@
 export function formatDate(date, fmt) {
   var o = {
     "M+": date.getMonth() + 1, //月份
-    "D+": date.getDay(), //日
+    "d+": date.getDay(), //日
     "h+": date.getHours(), //hours
     "m+": date.getMinutes(), //分钟
     's+': date.getSeconds(), //秒,

@@ -15,7 +15,6 @@
       <p>{{commentInfo.content}}</p>
       <div class="info-other">
         <span class="date">{{commentInfo.created | showDate}}</span>
-        <!-- <span class="date">{{commentInfo.created}}</span> -->
         <span>{{commentInfo.style}}</span>
       </div>
       <div class="info-imgs">
@@ -26,7 +25,7 @@
 </template>
 
 <script>
-import {formatDate} from "common/utils"
+import {formatDate} from "common/utils";
 export default {
   name: "DetailCommentInfo",
   data() {
@@ -40,8 +39,10 @@ export default {
   },
   filters:{
     showDate:function(value){
+      // 将时间戳转为Date对象
       const date=new Date(value*1000);
-      return formatDate(value,'yyyy-MM-dd');
+      // 将date进行格式化
+      return formatDate(date,'yyyy-MM-dd');
     }
   },
   components: {}

@@ -1,6 +1,6 @@
 <template>
   <div class="goods-item" @click="todetail()">
-    <img :src="goodsItem.show.img" alt="" @load="imgLoad">
+    <img :src="showImage" alt @load="imgLoad" />
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -10,74 +10,94 @@
 </template>
 
 <script>
-  export default {
-    name: "GoodListItem",
-    props: {
-      goodsItem: {
-        type: Object,
-        default() {
-          return {}
-        }
-      }
-    },
-    methods:{
-      imgLoad(){
-        this.$bus.$emit('itemImgLoad');
-      },
-      todetail(){
-        // console.log('跳转至详情页');
-        this.$router.push('/detail/'+this.goodsItem.iid)
+export default {
+  name: "GoodListItem",
+  props: {
+    goodsItem: {
+      type: Object,
+      default() {
+        return {};
       }
     }
+  },
+  computed: {
+    showImage() {
+      // 如果前面为空，就选后面的
+      return this.goodsItem.image || this.goodsItem.show.img;
+    }
+  },
+  methods: {
+    imgLoad() {
+      // console.log(this.$route.path);
+      if (this.$route.path == "/home") {
+        console.log("首页");
+        this.$bus.$emit("homeItemImgLoad");
+      } else {
+        console.log("详情页");
+        this.$bus.$emit("detailItemImgLoad");
+      }
+      // if(this.$route.path.indexOf('/home')){
+      //   console.log('首页');
+      //   this.$bus.$emit('homeItemImgLoad');
+      // }else if(this.$route.path.indexOf('/detail')){
+      //   console.log('详情页');
+      //   this.$bus.$emit('detailItemImgLoad');
+      // }
+    },
+    todetail() {
+      // console.log('跳转至详情页');
+      this.$router.push("/detail/" + this.goodsItem.iid);
+    }
   }
+};
 </script>
 
 <style scoped>
-  .goods-item {
-    padding-bottom: 40px;
-    position: relative;
-    width: 48%;
-  }
+.goods-item {
+  padding-bottom: 40px;
+  position: relative;
+  width: 48%;
+}
 
-  .goods-item img {
-    width: 100%;
-    height: 100%;
-    border-radius: 5px;
-  }
+.goods-item img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
 
-  .goods-info {
-    font-size: 12px;
-    position: absolute;
-    bottom: 5px;
-    left: 0;
-    right: 0;
-    overflow: hidden;
-    text-align: center;
-  }
+.goods-info {
+  font-size: 12px;
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  text-align: center;
+}
 
-  .goods-info p {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 3px;
-  }
+.goods-info p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
 
-  .goods-info .price {
-    color: var(--color-high-text);
-    margin-right: 20px;
-  }
+.goods-info .price {
+  color: var(--color-high-text);
+  margin-right: 20px;
+}
 
-  .goods-info .collect {
-    position: relative;
-  }
+.goods-info .collect {
+  position: relative;
+}
 
-  .goods-info .collect::before {
-    content: '';
-    position: absolute;
-    left: -15px;
-    top: -1px;
-    width: 14px;
-    height: 14px;
-    background: url("~assets/img/common/collect.svg") 0 0/14px 14px;
-  }
+.goods-info .collect::before {
+  content: "";
+  position: absolute;
+  left: -15px;
+  top: -1px;
+  width: 14px;
+  height: 14px;
+  background: url("~assets/img/common/collect.svg") 0 0/14px 14px;
+}
 </style>

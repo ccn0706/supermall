@@ -46,6 +46,7 @@ import BackTop from "components/common/backtop/BackTop";
 import { getHomeMultidata, getHomeGoods } from "network/home";
 // 防抖封装
 import { debounce } from "common/utils";
+import { itemListenerMixin } from "common/mixin";
 export default {
   name: "Home",
   components: {
@@ -58,6 +59,7 @@ export default {
     Scroll,
     BackTop
   },
+  mixins:[itemListenerMixin],
   data() {
     return {
       banners: [],
@@ -93,13 +95,13 @@ export default {
 
     //使用防抖动写法
     const refresh = debounce(this.$refs.scroll.refresh, 200);
-    this.$bus.$on("itemImgLoad", () => {
+    this.$bus.$on("homeItemImgLoad", () => {
       refresh();
     });
     // 获取tabControl的offsetTop，
     // 注意：组件是拿不到offsetTop的，需要拿到组件内元素的offsetTop。所有的组件都有一个属性$el:用于获取组件中的元素。
     // this.offsetTop=this.$refs.tabControl.$el.offsetTop;
-    // 这时打印出来的只有58，明显不正确。原因是在mounted，有的图片并未加载完
+    // 这时打印出来的只有58，明显不正确。原因是在mounted，有的图片并未加载完。
     // console.log(this.offsetTop)
   },
   computed: {
