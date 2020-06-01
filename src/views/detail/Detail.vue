@@ -213,14 +213,16 @@ export default {
       product.iid = this.iid;
       // 2.将商品加入购物车
       // 3.添加到购物车成功，那我们怎么知道已经加入成功了呢？
-      // 方法1.使用dispatch会返回一个promise，方法2：使用mapActions
       // this.$store.commit('addCart',product)
-
+      //方法1.使用dispatch会返回一个promise，
       // this.$store.dispatch('addCart', product).then(res=>{
       //   console.log(res);
       // })
+      // 方法2：使用mapActions
       this.addCart(product).then(res => {
-        console.log(res);
+        // console.log(this.$toast);
+        this.$toast.show(res,1000)
+        // console.log(res);
       });
     }
   }
